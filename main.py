@@ -25,6 +25,11 @@ from utils import (
     get_metrics_list,
 )
 
+from os.path import exists
+import json
+
+from typing import List
+
 log = Logger("main.py")
 
 if len(sys.argv) == 1:
@@ -46,11 +51,11 @@ if not validation_result:
     exit_program("Argument validation failed.")
 
 
-def create_output_folder_initialise_table(crf_or_preset):
+def create_output_folder_initialise_table(crf_or_preset) -> (str, str, str):
     if args.output_folder:
-        output_folder = f"{args.output_folder}/{crf_or_preset} Comparison"
+        output_folder = os.path.join(args.output_folder, f"{crf_or_preset} Comparison")
     else:
-        output_folder = f"({filename})/{crf_or_preset} Comparison"
+        output_folder = os.path.join(filename, f"{crf_or_preset} Comparison")
 
     comparison_table = os.path.join(output_folder, "Table.txt")
     table_column_names.insert(0, crf_or_preset)
@@ -108,7 +113,7 @@ if args.interval is not None:
 
 # The -ntm argument was not specified.
 if not args.no_transcoding_mode:
-    vmaf_scores = []
+    vmaf_scores : List[float] = []
     if video_encoder == "x264":
         crf = "23"
     elif video_encoder == "x265":
@@ -207,7 +212,7 @@ if not args.no_transcoding_mode:
     # Presets comparison mode.
     elif is_list(args.preset):
         log.info("Presets comparison mode activated.")
-        chosen_presets = args.preset
+        chosen_presets : list = args.preset
         presets_string = ", ".join(chosen_presets)
         crf = args.crf[0] if is_list(args.crf) else crf
         log.info(f"Presets {presets_string} will be compared at a CRF of {crf}.")
@@ -229,6 +234,7 @@ if not args.no_transcoding_mode:
             output_folder = f"{prev_output_folder}/Preset {preset}"
             os.makedirs(output_folder, exist_ok=True)
             transcode_output_path = os.path.join(output_folder, f"{preset}{output_ext}")
+            transcode_output_path = os.path.abspath(transcode_output_path)
 
             # Encode the video.
             factory, time_taken = encode_video(
@@ -292,7 +298,109 @@ if not args.no_transcoding_mode:
             bar_graph=True,
         )
 
-# -ntm mode.
+    #Custom presets mode
+    elif args.custom_presets_mode:      
+        log.info("Custom presets comparison mode activated.")
+
+        prev_output_folder : str
+        comparison_table : str
+        output_ext : str
+        prev_output_folder, comparison_table, output_ext = create_output_folder_initialise_table(
+            "CustomPreset"
+        )
+
+        path = 'custom_presets.json'
+        if (exists(path)):
+            with open(path) as f:
+                
+                # returns JSON object as 
+                # a dictionary
+                custom_presets = json.load(f)
+
+                seen = set()
+                for preset in custom_presets['presets']:
+                    if preset['name'] in seen:
+                         raise ValueError(f"{preset['name']} duplicate in {path}!")
+                    else:
+                        seen.add(preset['name'])
+
+                for preset in custom_presets['presets']:
+                    presetName: str = preset['name']
+                    log.info(f"| Preset '{presetName}': {preset['arguments']}")
+                    line()
+                    output_folder = os.path.join(prev_output_folder, f"Preset {presetName}")
+                    os.makedirs(output_folder, exist_ok=True)
+                    transcode_output_path = os.path.join(output_folder, f"{presetName}{output_ext}")
+                    #transcode_output_path = os.path.abspath(transcode_output_path)
+                    #transcode_output_path = f'"{os.path.abspath(transcode_output_path)}"'
+
+                    # Encode the video.
+                    factory, time_taken = encode_video(
+                        original_video_path,
+                        args,
+                        crf,
+                        preset['arguments'],
+                        transcode_output_path,
+                        presetName,
+                        duration,
+                    )
+
+                    transcode_size = os.path.getsize(transcode_output_path) / 1_000_000
+                    transcoded_bitrate = provider.get_bitrate(args.decimal_places, transcode_output_path)
+                    size_rounded = force_decimal_places(transcode_size, args.decimal_places)
+                    data_for_current_row = [f"{size_rounded} MB", transcoded_bitrate]
+
+                    # Save the output of libvmaf to the following path.
+                    json_file_path : str = os.path.join(output_folder, "Metrics of each frame.json")
+                    json_file_path = json_file_path.replace("\\", "/")
+                    #json_file_path = os.path.abspath(json_file_path)
+                    # Run the libvmaf filter.
+                    run_libvmaf(
+                        transcode_output_path,
+                        args,
+                        json_file_path,
+                        fps,
+                        original_video_path,
+                        factory,
+                        duration,
+                        preset,
+                    )
+
+                    vmaf_scores.append(
+                        get_metrics_save_table(
+                            comparison_table,
+                            json_file_path,
+                            args,
+                            args.decimal_places,
+                            data_for_current_row,
+                            table,
+                            output_folder,
+                            time_taken,
+                            presetName,
+                        )
+                    )
+
+                    mean_vmaf = force_decimal_places(np.mean(vmaf_scores), args.decimal_places)
+
+                    write_table_info(
+                        comparison_table, original_video_path, original_bitrate, args, f"CRF {crf}"
+                    )
+
+                # Plot a bar graph showing the average VMAF score of each preset.
+                plot_graph(
+                "CustomPreset vs VMAF",
+                "Preset",
+                "VMAF",
+                [p['name'] for p in custom_presets['presets']],
+                vmaf_scores,
+                mean_vmaf,
+                os.path.join(prev_output_folder, "CustomPreset vs VMAF"),
+                bar_graph=True,
+                )
+        else:
+            raise FileNotFoundError(f"{path} not exist!")
+
+# -ntm mode. no transcoding mode
 else:
     if args.output_folder:
         output_folder = args.output_folder

@@ -1,0 +1,27 @@
+{
+	"presets":
+	[
+		{"name": "slow", "arguments": "-crf 16 -preset slow"},
+		{"name": "slowWbTu2", "arguments": "-crf 16 -preset slow -x265-params bframes=8:no-cutree=1:weightb:1:tu-intra-depth=2:tu-inter-depth=2"},
+		{"name": "slowWbTu2Rd6", "arguments": "-crf 16 -preset slow -x265-params bframes=8:no-cutree=1:weightb:1:tu-intra-depth=2:tu-inter-depth=2:rd=6:rdoq=2:psy-rdoq=1.0"},
+		{"name": "slowWbTu2Ref5", "arguments": "-crf 16 -preset slow -x265-params bframes=8:no-cutree=1:weightb:1:tu-intra-depth=2:tu-inter-depth=2:ref=5"},
+		{"name": "slowWbTu4", "arguments": "-crf 16 -preset slow -x265-params bframes=8:no-cutree=1:weightb:1:tu-intra-depth=4:tu-inter-depth=4"},
+		{"name": "slowWbTu4LimitTu4", "arguments": "-crf 16 -preset slow -x265-params bframes=8:no-cutree=1:weightb:1:tu-intra-depth=4:tu-inter-depth=4:limit-tu=4"},
+		{"name": "slowSubme5", "arguments": "-crf 16 -preset slow -x265-params subme=5"},
+		{"name": "slowWeightb", "arguments": "-crf 16 -preset slow -x265-params weightb=1"},
+		{"name": "slowWeightbBframes8", "arguments": "-crf 16 -preset slow -x265-params bframes=8:weightb=1"},
+		{"name": "slowSea", "arguments": "-crf 16 -preset slow -x265-params me=sea"},
+		{"name": "slowSubme5Sea", "arguments": "-crf 16 -preset slow -x265-params subme=5:me=sea"},
+		{"name": "slowSubme5SeaWeightb", "arguments": "-crf 16 -preset slow -x265-params subme=5:me=sea:weightb=1"},
+		{"name": "slower", "arguments": "-crf 16 -preset slower"},
+		{"name": "slowerGrain", "arguments": "-crf 16 -preset slower -tune grain"},
+		{"name": "slowGrain11", "arguments": "-crf 16 -preset slow -tune grain -x265-params subme=5:me=sea:weightb=1"},
+		{"name": "slowGrain", "arguments": "-crf 16 -preset slow -tune grain"},
+		{"name": "slowDeblock2", "arguments": "-crf 16 -preset slow -x265-params deblock=-2,-2"}, 
+		{"name": "slowDeblock3", "arguments": "-crf 16 -preset slow -x265-params deblock=-3,-3"},
+		{"name": "slowDeblock3Tree", "arguments": "-crf 16 -preset slow -x265-params deblock=-3,-3:no-cutree=1"},
+		{"name": "slowNoTree", "arguments": "-crf 16 -preset slow -x265-params no-cutree=1"},
+		{"name": "slowWbTu2Lookahead40", "arguments": "-crf 16 -preset slow -x265-params bframes=8:no-cutree=1:weightb:1:tu-intra-depth=2:tu-inter-depth=2:rc-lookahead=40"},
+		{"name": "ripping", "arguments": "-crf 16 -preset slow -x265-params weightb=1:amp=1:rect=1:rc-lookahead=40:bframes=8:tu-inter-depth=3:tu-intra-depth=3:rd=6:rdoq=2:psy-rdoq=1.0:subme=4:max-merge=4:me=star:ref=5:b-intra=1:lookahead-slices=0"}
+	]
+}

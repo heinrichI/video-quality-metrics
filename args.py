@@ -104,6 +104,14 @@ general_args.add_argument(
     "Example: python main.py -ntm -ovp original.mp4 -tvp transcoded.mp4",
 )
 
+# custom presets mode
+general_args.add_argument(
+    "-cp",
+    "--custom-presets-mode",
+    action="store_true",
+    help='Compare custom presets from custom_presets.json.',
+)
+
 general_args.add_argument(
     "-o",
     "--output-folder",

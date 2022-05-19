@@ -8,7 +8,6 @@
 *.MTS
 *.wmv
 # Miscellaneous
-*.bat
 *.code-workspace
 .DS_Store
 *.exe
@@ -18,4 +17,4 @@
 *)
 __pycache__/
 venv/
-.vscode/
+/environment/*

@@ -15,7 +15,7 @@ def run_libvmaf(
     original_video_path,
     factory,
     duration,
-    crf_or_preset=None,
+    crf_or_preset:str=None ,
 ):
     characters_to_escape = ["'", ":", ",", "[", "]"]
     for character in characters_to_escape:

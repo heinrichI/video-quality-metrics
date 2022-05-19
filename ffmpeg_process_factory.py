@@ -6,17 +6,18 @@ log = Logger("factory")
 
 
 class EncodingArguments:
-    def __init__(self, infile, encoder, outfile):
+    def __init__(self, infile, encoder, outfile, custom_presets_mode):
         self._infile = infile
         self._encoder = encoder
         self._outfile = outfile
+        self._custom_presets_mode = custom_presets_mode
         self._base_ffmpeg_arguments = ["-i", self._infile]
 
     # libaom-av1 "cpu-used" option.
     def av1_cpu_used(self, value):
         self._av1_cpu_used = value
 
-    def preset(self, value):
+    def preset(self, value : str):
         self._preset = value
 
     def crf(self, value):
@@ -32,17 +33,21 @@ class EncodingArguments:
         self._outfile = value
 
     def get_arguments(self):
-        base_encoding_arguments = [
+        encoding_arguments = [
             "-map",
             "0:V",
             "-c:v",
-            "libaom-av1" if self._encoder == "libaom-av1" else f"lib{self._encoder}",
-            "-crf",
-            self._crf,
+            "libaom-av1" if self._encoder == "libaom-av1" else f"lib{self._encoder}"
         ]
 
+        if (not self._custom_presets_mode):
+            encoding_arguments = encoding_arguments + [
+                "-crf",
+                self._crf,
+            ]
+
         if self._encoder == "libaom-av1":
-            encoding_arguments = base_encoding_arguments + [
+            encoding_arguments = encoding_arguments + [
                 "-b:v",
                 "0",
                 "-cpu-used",
@@ -51,12 +56,15 @@ class EncodingArguments:
                 self._outfile,
             ]
         else:
-            encoding_arguments = base_encoding_arguments + [
-                "-preset",
-                self._preset,
-                *self._video_filters,
-                self._outfile,
-            ]
+            if (not self._custom_presets_mode):
+                encoding_arguments.append("-preset")
+            else:
+                encoding_arguments = encoding_arguments + self._preset.split()
+
+            encoding_arguments = encoding_arguments + [
+                 *self._video_filters,
+                 self._outfile,
+             ]
 
         return self._base_ffmpeg_arguments + encoding_arguments
 
@@ -116,12 +124,12 @@ class FfmpegProcessFactory:
 class FfmpegProcess:
     def __init__(self, arguments, args):
         self._arguments = arguments
-        if args.show_commands:
-            line()
-            log.debug(f'Running the following command:\n{" ".join(self._arguments)}')
-            line()
+        #if args.show_commands:
+        line()
+        log.debug(f'Running the following command:\n{" ".join(self._arguments)}')
+        line()
 
-    def run(self, video_path, duration):
+    def run(self, video_path : str, duration):
         self._video_path = video_path
         self._duration = duration
 
@@ -129,6 +137,9 @@ class FfmpegProcess:
         self._total_frames = int((video_info.get_framerate_float() * self._duration) + 1)
 
         # Start the FFmpeg process.
-        self._process = subprocess.Popen(self._arguments, stdout=subprocess.PIPE)
+        try:
+            self._process = subprocess.Popen(self._arguments, stdout=subprocess.PIPE)
+        except subprocess.CalledProcessError as error:
+            log.warning(f'CalledProcessError:\n{error}')
         # Use tqdm to show a progress bar.
         show_progress_bar(self._process, self._total_frames)

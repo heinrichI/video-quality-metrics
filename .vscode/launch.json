@@ -1,0 +1,19 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Main File",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "args": ["-e", "x265", "-cp", "-ovp", "i:\\Coding\\Chaos.Walking.2021_test_cut.mkv"],
+            //"args": ["-e", "x265", "-cp", "-ovp", "c:/Temp/806153_00_01_WX30_intro.mp4"],
+            //"args": ["-e", "x265", "-p", "medium", "-ovp", "c:\\Обучение\\!\\Programming Foundations APIs and Web Services\\2\\784303_02_02_LA30_Benefits.mp4"],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}

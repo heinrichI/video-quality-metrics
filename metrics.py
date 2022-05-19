@@ -19,7 +19,7 @@ def get_metrics_save_table(
     output_folder,
     time_taken,
     crf_or_preset=None,
-):
+) -> float:
     with open(json_file_path, "r") as f:
         file_contents = json.load(f)
 
